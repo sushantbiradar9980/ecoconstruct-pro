@@ -13,7 +13,9 @@ import {
   Building2, 
   Loader2, 
   Check, 
-  Lock
+  Lock,
+  Banknote,
+  Clock
 } from 'lucide-react';
 import { formatPrice, calculateCartTotals, generateOrderId } from '../utils/formatters';
 
@@ -105,6 +107,15 @@ export default function CheckoutModal({
     // Simulate 1-second processing state as required
     setTimeout(() => {
       const orderId = generateOrderId();
+      let formattedPaymentMethod = 'Credit Card (ending 4921)';
+      if (paymentMethod === 'upi') {
+        formattedPaymentMethod = `UPI (${upiId})`;
+      } else if (paymentMethod === 'cod') {
+        formattedPaymentMethod = 'Cash on Delivery (Site Inspection Delivery)';
+      } else if (paymentMethod === 'trade_credit') {
+        formattedPaymentMethod = 'Pay Later / 30-Day Green Trade Credit';
+      }
+
       const newOrder = {
         id: orderId,
         date: new Date().toISOString(),
@@ -112,7 +123,7 @@ export default function CheckoutModal({
         totalUSD: finalTotalUSD,
         shippingMethod: shippingMethod === 'express' ? 'Express Zero-Emission' : 'Standard Green Shipping',
         shippingAddress: { ...shippingAddress },
-        paymentMethod: paymentMethod === 'card' ? 'Credit Card (ending 4921)' : paymentMethod === 'upi' ? `UPI (${upiId})` : 'Green Trade Credit',
+        paymentMethod: formattedPaymentMethod,
         currency,
         status: 'Confirmed - Preparing for EV Dispatch',
         estimatedDelivery: shippingMethod === 'express' ? '1 - 2 Business Days' : '3 - 5 Business Days'
@@ -128,40 +139,40 @@ export default function CheckoutModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
         onClick={!isProcessing ? onClose : undefined}
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-750 rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-2xl bg-white border border-emerald-100 rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[92vh]">
         
         {/* Processing Spinner Overlay */}
         {isProcessing && (
-          <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-fadeIn">
-            <div className="w-16 h-16 rounded-full border-4 border-emerald-500/30 border-t-emerald-500 animate-spin flex items-center justify-center mb-4">
-              <Loader2 className="w-8 h-8 text-emerald-400 animate-pulse" />
+          <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-fadeIn">
+            <div className="w-16 h-16 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin flex items-center justify-center mb-4">
+              <Loader2 className="w-8 h-8 text-emerald-600 animate-pulse" />
             </div>
-            <h3 className="text-xl font-extrabold text-white">
+            <h3 className="text-xl font-extrabold text-slate-900">
               Processing Sustainable Order...
             </h3>
-            <p className="text-xs text-slate-300 max-w-sm mt-2">
+            <p className="text-xs text-slate-600 max-w-sm mt-2">
               Validating carbon-neutral trade route, locking inventory batches, and executing payment gateway transaction.
             </p>
-            <div className="mt-4 px-3 py-1 rounded-full bg-emerald-950 border border-emerald-800 text-[11px] text-emerald-300 flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="mt-4 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>256-Bit Encrypted Green Transaction</span>
             </div>
           </div>
         )}
 
         {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-800 bg-slate-850 flex items-center justify-between">
+        <div className="p-4 sm:p-5 border-b border-emerald-100 bg-emerald-50/50 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               Secure Green Checkout
-              <Lock className="w-4 h-4 text-emerald-400" />
+              <Lock className="w-4 h-4 text-emerald-600" />
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500">
               Step {currentStep} of 4: {
                 currentStep === 1 ? 'Shipping Address' :
                 currentStep === 2 ? 'Zero-Emission Delivery Method' :
@@ -173,7 +184,7 @@ export default function CheckoutModal({
           <button
             onClick={onClose}
             disabled={isProcessing}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors touch-target"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors touch-target"
             aria-label="Close checkout"
           >
             <X className="w-5 h-5" />
@@ -181,7 +192,7 @@ export default function CheckoutModal({
         </div>
 
         {/* Multi-Step Progress Tracker */}
-        <div className="px-5 py-3 bg-slate-850/60 border-b border-slate-800 flex items-center justify-between text-xs">
+        <div className="px-5 py-3 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between text-xs">
           {[
             { step: 1, label: 'Address', icon: MapPin },
             { step: 2, label: 'Shipping', icon: Truck },
@@ -200,16 +211,20 @@ export default function CheckoutModal({
                   }
                 }}
                 className={`flex items-center gap-1.5 cursor-pointer transition-colors ${
-                  isCurrent ? 'text-emerald-400 font-bold' : isCompleted ? 'text-slate-300 hover:text-white' : 'text-slate-500'
+                  isCurrent 
+                    ? 'text-emerald-700 font-bold' 
+                    : isCompleted 
+                    ? 'text-slate-800 hover:text-emerald-700' 
+                    : 'text-slate-400'
                 }`}
               >
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
                     isCurrent
-                      ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/40'
+                      ? 'bg-emerald-600 text-white shadow-sm'
                       : isCompleted
-                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                      : 'bg-slate-800 text-slate-500 border border-slate-700'
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                      : 'bg-slate-200 text-slate-500'
                   }`}
                 >
                   {isCompleted ? <Check className="w-3.5 h-3.5" /> : step}
@@ -221,475 +236,507 @@ export default function CheckoutModal({
         </div>
 
         {/* Scrollable Form Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1 text-slate-800">
           
           {/* STEP 1: Shipping Address Form */}
           {currentStep === 1 && (
             <div className="space-y-4 animate-fadeIn">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-emerald-400" />
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-emerald-600" />
                 Delivery Site & Recipient Details
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">First Name *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">First Name *</label>
                   <input
                     type="text"
                     required
                     value={shippingAddress.firstName}
                     onChange={(e) => handleAddressChange('firstName', e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Last Name *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Last Name *</label>
                   <input
                     type="text"
                     required
                     value={shippingAddress.lastName}
                     onChange={(e) => handleAddressChange('lastName', e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Street Address / Jobsite *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Street Address / Jobsite *</label>
                   <input
                     type="text"
                     required
+                    placeholder="e.g. 742 Evergreen Eco-Way"
                     value={shippingAddress.streetAddress}
                     onChange={(e) => handleAddressChange('streetAddress', e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">City *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">City *</label>
                   <input
                     type="text"
                     required
                     value={shippingAddress.city}
                     onChange={(e) => handleAddressChange('city', e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">State / Province *</label>
-                  <input
-                    type="text"
-                    required
-                    value={shippingAddress.state}
-                    onChange={(e) => handleAddressChange('state', e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">State *</label>
+                    <input
+                      type="text"
+                      required
+                      value={shippingAddress.state}
+                      onChange={(e) => handleAddressChange('state', e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Zip Code *</label>
+                    <input
+                      type="text"
+                      required
+                      value={shippingAddress.zipCode}
+                      onChange={(e) => handleAddressChange('zipCode', e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">PIN / ZIP Code *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
                   <input
-                    type="text"
-                    required
-                    value={shippingAddress.zipCode}
-                    onChange={(e) => handleAddressChange('zipCode', e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Contractor Phone</label>
-                  <input
-                    type="text"
+                    type="tel"
                     value={shippingAddress.phone}
                     onChange={(e) => handleAddressChange('phone', e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Email (For Carbon Certificate)</label>
+                  <input
+                    type="email"
+                    value={shippingAddress.email}
+                    onChange={(e) => handleAddressChange('email', e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
               </div>
             </div>
           )}
 
-          {/* STEP 2: Shipping Method Selector */}
+          {/* STEP 2: Shipping Method Form */}
           {currentStep === 2 && (
             <div className="space-y-4 animate-fadeIn">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <Truck className="w-4 h-4 text-emerald-400" />
-                Select Zero-Emission Logistics Route
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <Truck className="w-4 h-4 text-emerald-600" />
+                Select Zero-Emission Transport Method
               </h3>
 
               <div className="space-y-3">
-                {/* Standard Green Shipping */}
-                <div
+                {/* Standard Shipping Card */}
+                <label
                   onClick={() => setShippingMethod('standard')}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                  className={`block p-4 rounded-2xl border cursor-pointer transition-all ${
                     shippingMethod === 'standard'
-                      ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/20'
-                      : 'bg-slate-800/80 border-slate-700 hover:bg-slate-800'
+                      ? 'border-emerald-500 bg-emerald-50/70 shadow-sm'
+                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center border-emerald-500">
-                        {shippingMethod === 'standard' && <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />}
+                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                        shippingMethod === 'standard' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-400 bg-white'
+                      }`}>
+                        {shippingMethod === 'standard' && <div className="w-2 h-2 rounded-full bg-white" />}
                       </div>
                       <div>
-                        <div className="font-bold text-white text-sm">
-                          Standard Green Shipping (EV Freight Rail & Fleet)
+                        <div className="font-bold text-slate-900 text-sm">
+                          Standard Green Logistics
                         </div>
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          3 - 5 Business Days • 100% Bio-diesel and Electric Fleet
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          Consolidated freight rail + electric delivery van (3 - 5 business days)
                         </div>
                       </div>
                     </div>
+
                     <div className="text-right">
-                      <span className="font-bold text-sm text-emerald-400">
+                      <span className="font-bold text-emerald-700 text-sm">
                         {totals.isFreeShipping ? 'FREE' : formatPrice(totals.shippingUSD, currency)}
                       </span>
+                      {totals.isFreeShipping && (
+                        <div className="text-[10px] text-emerald-600 font-semibold">Over $100 Order</div>
+                      )}
                     </div>
                   </div>
-                </div>
+                </label>
 
-                {/* Express Zero-Emission Electric Fleet */}
-                <div
+                {/* Express Zero-Emission Surcharge Card */}
+                <label
                   onClick={() => setShippingMethod('express')}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                  className={`block p-4 rounded-2xl border cursor-pointer transition-all ${
                     shippingMethod === 'express'
-                      ? 'bg-emerald-950/50 border-emerald-500 ring-2 ring-emerald-500/20'
-                      : 'bg-slate-800/80 border-slate-700 hover:bg-slate-800'
+                      ? 'border-emerald-500 bg-emerald-50/70 shadow-sm'
+                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center border-emerald-500">
-                        {shippingMethod === 'express' && <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />}
+                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                        shippingMethod === 'express' ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-400 bg-white'
+                      }`}>
+                        {shippingMethod === 'express' && <div className="w-2 h-2 rounded-full bg-white" />}
                       </div>
                       <div>
-                        <div className="font-bold text-white text-sm flex items-center gap-2">
-                          <span>Express Zero-Emission Electric Courier</span>
-                          <span className="text-[10px] bg-emerald-900/80 text-emerald-300 px-2 py-0.2 rounded-full border border-emerald-700">
-                            Priority
+                        <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                          <span>Express EV Direct Dispatch</span>
+                          <span className="px-2 py-0.5 text-[10px] rounded-full bg-amber-100 text-amber-800 font-semibold border border-amber-200">
+                            Fastest
                           </span>
                         </div>
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          1 - 2 Business Days • Solar-charged dedicated delivery vehicle
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          Dedicated Electric Freight direct from regional facility (1 - 2 business days)
                         </div>
                       </div>
                     </div>
+
                     <div className="text-right">
-                      <span className="font-bold text-sm text-emerald-400">
-                        +{formatPrice(14.99, currency)}
+                      <span className="font-bold text-slate-900 text-sm">
+                        +{formatPrice(expressSurchargeUSD, currency)}
                       </span>
+                      <div className="text-[10px] text-slate-500">Expedited surcharge</div>
                     </div>
                   </div>
-                </div>
+                </label>
+              </div>
+
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-xs text-emerald-800">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span>All deliveries verified 100% carbon-neutral with Scope 3 freight telemetry.</span>
               </div>
             </div>
           )}
 
-          {/* STEP 3: Payment Method Tab Selector */}
+          {/* STEP 3: Payment Method Form */}
           {currentStep === 3 && (
             <div className="space-y-4 animate-fadeIn">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-emerald-400" />
-                Select Payment Method
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-emerald-600" />
+                Payment Method Selection
               </h3>
 
-              {/* Payment Tabs */}
-              <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-800 rounded-2xl border border-slate-700">
+              {/* Payment Type Tabs */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('card')}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all touch-target ${
+                  className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 text-xs font-semibold transition-all ${
                     paymentMethod === 'card'
-                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'border-emerald-500 bg-emerald-50/70 text-emerald-900 shadow-xs ring-1 ring-emerald-500 font-bold'
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <CreditCard className="w-4 h-4" />
+                  <CreditCard className="w-5 h-5 text-emerald-600" />
                   <span>Card</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('upi')}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all touch-target ${
+                  className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 text-xs font-semibold transition-all ${
                     paymentMethod === 'upi'
-                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'border-emerald-500 bg-emerald-50/70 text-emerald-900 shadow-xs ring-1 ring-emerald-500 font-bold'
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <QrCode className="w-4 h-4" />
+                  <Smartphone className="w-5 h-5 text-emerald-600" />
                   <span>UPI / QR</span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('trade_credit')}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all touch-target ${
-                    paymentMethod === 'trade_credit'
-                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                      : 'text-slate-400 hover:text-white'
+                  onClick={() => setPaymentMethod('cod')}
+                  className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 text-xs font-semibold transition-all ${
+                    paymentMethod === 'cod'
+                      ? 'border-emerald-500 bg-emerald-50/70 text-emerald-900 shadow-xs ring-1 ring-emerald-500 font-bold'
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <Building2 className="w-4 h-4" />
-                  <span>Trade Credit</span>
+                  <Banknote className="w-5 h-5 text-emerald-600" />
+                  <span className="text-center">Cash on Delivery</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('trade_credit')}
+                  className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 text-xs font-semibold transition-all ${
+                    paymentMethod === 'trade_credit'
+                      ? 'border-emerald-500 bg-emerald-50/70 text-emerald-900 shadow-xs ring-1 ring-emerald-500 font-bold'
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <Clock className="w-5 h-5 text-emerald-600" />
+                  <span className="text-center">Pay Later (30d)</span>
                 </button>
               </div>
 
-              {/* Tab 1: Credit / Debit Card Form */}
+              {/* Option 1: Credit / Debit Card Form */}
               {paymentMethod === 'card' && (
-                <div className="space-y-4 pt-1 animate-fadeIn">
-                  {/* Virtual Styled Card Preview */}
-                  <div className="w-full max-w-sm mx-auto p-4 sm:p-5 rounded-2xl bg-gradient-to-tr from-emerald-800 via-emerald-700 to-teal-800 text-white shadow-xl shadow-emerald-950/40 border border-emerald-600/40 space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-200">
-                        EcoConstruct Commercial Card
-                      </span>
-                      <ShieldCheck className="w-5 h-5 text-emerald-300" />
-                    </div>
-
-                    <div className="font-mono text-base sm:text-lg tracking-widest font-bold">
-                      {cardData.cardNumber || '•••• •••• •••• ••••'}
-                    </div>
-
-                    <div className="flex justify-between items-end text-xs">
-                      <div>
-                        <div className="text-[10px] text-emerald-300 uppercase">Card Holder</div>
-                        <div className="font-semibold uppercase tracking-wider">
-                          {cardData.cardHolder || 'NAME'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] text-emerald-300 uppercase">Expires</div>
-                        <div className="font-semibold font-mono">
-                          {cardData.expiry || 'MM/YY'}
-                        </div>
-                      </div>
-                    </div>
+                <div className="p-4 rounded-2xl bg-emerald-50/40 border border-emerald-200 space-y-3 animate-fadeIn">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Card Number</label>
+                    <input
+                      type="text"
+                      placeholder="4532 8920 1823 4921"
+                      value={cardData.cardNumber}
+                      onChange={handleCardNumberChange}
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Card Number</label>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Cardholder Name</label>
                       <input
                         type="text"
-                        placeholder="4532 8920 1823 4921"
-                        value={cardData.cardNumber}
-                        onChange={handleCardNumberChange}
-                        className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-mono text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        value={cardData.cardHolder}
+                        onChange={(e) => setCardData({ ...cardData, cardHolder: e.target.value.toUpperCase() })}
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Expiry Date (MM/YY)</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Expiry</label>
                         <input
                           type="text"
-                          placeholder="08/28"
+                          placeholder="MM/YY"
                           value={cardData.expiry}
                           onChange={handleExpiryChange}
-                          className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-mono text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 font-mono text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         />
                       </div>
-
                       <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">CVV / CVC</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">CVV</label>
                         <input
                           type="password"
                           maxLength={4}
-                          placeholder="849"
+                          placeholder="•••"
                           value={cardData.cvv}
                           onChange={handleCvvChange}
-                          className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-mono text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 font-mono text-center focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         />
                       </div>
                     </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Cardholder Name</label>
-                      <input
-                        type="text"
-                        placeholder="Marcus Vance"
-                        value={cardData.cardHolder}
-                        onChange={(e) => setCardData({ ...cardData, cardHolder: e.target.value.toUpperCase() })}
-                        className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Tab 2: UPI / QR Code */}
+              {/* Option 2: UPI / QR Payment */}
               {paymentMethod === 'upi' && (
-                <div className="space-y-4 pt-1 animate-fadeIn text-center">
-                  <div className="p-4 bg-slate-800 rounded-2xl border border-slate-700 inline-block mx-auto shadow-inner">
-                    {/* Mock realistic QR code graphic */}
-                    <div className="w-44 h-44 bg-white p-3 rounded-xl mx-auto flex flex-col justify-between items-center shadow">
-                      <div className="grid grid-cols-6 gap-1 w-full h-full p-1 bg-slate-100 rounded">
-                        {Array.from({ length: 36 }).map((_, i) => (
-                          <div
-                            key={i}
-                            className={`rounded-xs ${
-                              (i % 2 === 0 && i % 3 === 0) || i === 0 || i === 5 || i === 30 || i === 35 || i === 14 || i === 21
-                                ? 'bg-slate-900'
-                                : (i % 5 === 0 ? 'bg-emerald-600' : 'bg-transparent')
-                            }`}
-                          />
-                        ))}
-                      </div>
+                <div className="p-4 rounded-2xl bg-emerald-50/40 border border-emerald-200 space-y-3 animate-fadeIn">
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-16 rounded-xl bg-white border border-emerald-200 flex items-center justify-center p-1.5 flex-shrink-0">
+                      <QrCode className="w-full h-full text-slate-800" />
                     </div>
-                    <div className="mt-2 text-[11px] text-slate-400 font-medium">
-                      Scan with Google Pay, PhonePe, Paytm, or BHIM
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">Instant UPI Payment</div>
+                      <p className="text-[11px] text-slate-600">
+                        Scan with Google Pay, PhonePe, Paytm, or BHIM, or enter your VPA ID below.
+                      </p>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1 text-left">
-                      Or Pay via UPI ID / VPA
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="contractor@okaxis"
-                        value={upiId}
-                        onChange={(e) => setUpiId(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </div>
-                    <p className="text-[11px] text-emerald-400 text-left mt-1">
-                      ✓ Instant zero-fee verification
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 3: Cash on Delivery / Green Trade Credit */}
-              {paymentMethod === 'trade_credit' && (
-                <div className="space-y-4 pt-1 animate-fadeIn">
-                  <div className="p-4 rounded-2xl bg-slate-850 border border-slate-750 space-y-2">
-                    <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                      <Building2 className="w-4 h-4" />
-                      Contractor Net-30 Trade Credit & COD
-                    </div>
-                    <p className="text-xs text-slate-300">
-                      Eligible for USGBC/LEED registered developers, certified green builders, or pay cash/cheque upon site unloading.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Builder Registration / LEED Contractor ID
-                    </label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Virtual Payment Address (UPI ID)</label>
                     <input
                       type="text"
-                      placeholder="USGBC-LEED-CON-9021"
+                      placeholder="username@bank"
+                      value={upiId}
+                      onChange={(e) => setUpiId(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Option 3: Cash on Delivery (Site Inspection Delivery) */}
+              {paymentMethod === 'cod' && (
+                <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-300 space-y-3 animate-fadeIn">
+                  <div className="flex items-start gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center flex-shrink-0 border border-emerald-200 mt-0.5">
+                      <Banknote className="w-6 h-6 text-emerald-700" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-slate-900">
+                        Cash on Delivery (Site Inspection Delivery)
+                      </div>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        Allows pay-on-arrival with no immediate online transaction. Inspect material batches and verified certificates at your jobsite before paying.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white border border-emerald-200 text-xs text-emerald-900 font-semibold flex items-center gap-2 shadow-xs">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span>Pay with cash or UPI upon material drop-off and quality verification.</span>
+                  </div>
+
+                  <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Our EV logistics driver carries an official digital receipt & UPI scanner.</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Option 4: Pay Later / 30-Day Green Trade Credit */}
+              {paymentMethod === 'trade_credit' && (
+                <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-300 space-y-3 animate-fadeIn">
+                  <div className="flex items-start gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center flex-shrink-0 border border-emerald-200 mt-0.5">
+                      <Building2 className="w-6 h-6 text-emerald-700" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-slate-900">
+                        Pay Later / 30-Day Green Trade Credit
+                      </div>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        Allows eligible contractors, architects, and builders to defer payment by 30 days with zero interest.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Contractor / Trade License Number</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. USGBC-LEED-CON-9021"
                       value={tradeLicense}
                       onChange={(e) => setTradeLicense(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white border border-emerald-200 text-xs text-emerald-900 font-medium flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span>Net-30 invoice will be generated and dispatched with delivery manifest.</span>
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* STEP 4: Real-time Order Summary Review */}
+          {/* STEP 4: Final Order Review */}
           {currentStep === 4 && (
             <div className="space-y-4 animate-fadeIn">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                Review Your Sustainable Order
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                Review & Confirm Order
               </h3>
 
-              {/* Delivery destination preview */}
-              <div className="p-3.5 rounded-xl bg-slate-850 border border-slate-800 text-xs space-y-1">
-                <div className="text-slate-400 font-semibold uppercase tracking-wider">
-                  Deliver To:
-                </div>
-                <div className="text-white font-bold">
-                  {shippingAddress.firstName} {shippingAddress.lastName}
-                </div>
-                <div className="text-slate-300">
-                  {shippingAddress.streetAddress}, {shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}
-                </div>
-                <div className="text-emerald-400 font-medium">
-                  Method: {shippingMethod === 'express' ? 'Express Zero-Emission Electric Courier' : 'Standard Green Shipping'}
-                </div>
-              </div>
-
-              {/* Items in order */}
-              <div className="border border-slate-800 rounded-xl divide-y divide-slate-800 max-h-44 overflow-y-auto">
+              {/* Order Items Preview */}
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden divide-y divide-slate-200">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="p-2.5 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <img src={item.imageUrl} alt={item.title} className="w-8 h-8 rounded-lg object-cover" />
+                  <div key={item.id} className="p-3 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <img src={item.imageUrl} alt={item.title} className="w-10 h-10 rounded-lg object-cover bg-white" />
                       <div>
-                        <div className="font-semibold text-white truncate max-w-xs">{item.title}</div>
-                        <div className="text-slate-400">{item.quantity} × {formatPrice(item.price, currency)}</div>
+                        <div className="font-bold text-slate-900">{item.title}</div>
+                        <div className="text-slate-500">{item.quantity} × {formatPrice(item.price, currency)}</div>
                       </div>
                     </div>
-                    <div className="font-bold text-white">
+                    <div className="font-extrabold text-slate-900">
                       {formatPrice(item.price * item.quantity, currency)}
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Calculation Summary */}
-              <div className="p-3.5 rounded-xl bg-slate-850 border border-slate-800 space-y-1.5 text-xs">
-                <div className="flex justify-between text-slate-300">
-                  <span>Subtotal</span>
-                  <span>{formatPrice(totals.subtotalUSD, currency)}</span>
+              {/* Delivery and Payment Summary Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-slate-500 font-semibold block mb-1">Shipping Destination</span>
+                  <div className="font-bold text-slate-900">
+                    {shippingAddress.firstName} {shippingAddress.lastName}
+                  </div>
+                  <div className="text-slate-600 truncate">{shippingAddress.streetAddress}</div>
+                  <div className="text-slate-600">{shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}</div>
                 </div>
-                <div className="flex justify-between text-slate-300">
-                  <span>Shipping Route</span>
-                  <span className={totals.isFreeShipping && shippingMethod === 'standard' ? 'text-emerald-400 font-semibold' : ''}>
-                    {shippingMethod === 'express'
-                      ? formatPrice(14.99 + (totals.isFreeShipping ? 0 : totals.shippingUSD), currency)
-                      : totals.isFreeShipping ? 'FREE' : formatPrice(totals.shippingUSD, currency)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-slate-300">
-                  <span>Estimated Tax (8.75%)</span>
-                  <span>{formatPrice(totals.taxUSD, currency)}</span>
-                </div>
-                <div className="pt-2 border-t border-slate-700 flex justify-between text-base font-extrabold text-white">
-                  <span>Final Order Total</span>
-                  <span className="text-emerald-400">{formatPrice(finalTotalUSD, currency)}</span>
+
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-slate-500 font-semibold block mb-1">Payment & Dispatch</span>
+                  <div className="font-bold text-slate-900">
+                    {paymentMethod === 'card' 
+                      ? 'Credit Card (ending 4921)' 
+                      : paymentMethod === 'upi' 
+                      ? `UPI (${upiId})` 
+                      : paymentMethod === 'cod'
+                      ? 'Cash on Delivery (Site Inspection Delivery)'
+                      : 'Pay Later / 30-Day Green Trade Credit'}
+                  </div>
+                  <div className="text-emerald-700 font-medium mt-1">
+                    {shippingMethod === 'express' ? '⚡ Express EV Dispatch' : '🌱 Standard Green Logistics'}
+                  </div>
                 </div>
               </div>
 
-              {/* Green Offset Callout */}
-              <div className="p-3 rounded-xl bg-emerald-950/50 border border-emerald-800/60 text-xs text-emerald-300 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <span>
-                  Placing this order officially diverts ~185 kg CO₂ from industrial atmosphere via circular supply chains.
-                </span>
+              {/* Order Cost Breakdown */}
+              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-2 text-xs">
+                <div className="flex justify-between text-slate-700">
+                  <span>Subtotal</span>
+                  <span className="font-medium">{formatPrice(totals.subtotalUSD, currency)}</span>
+                </div>
+                <div className="flex justify-between text-slate-700">
+                  <span>Logistics</span>
+                  <span className="font-medium">
+                    {shippingMethod === 'express' 
+                      ? formatPrice(expressSurchargeUSD, currency) 
+                      : (totals.isFreeShipping ? 'FREE' : formatPrice(totals.shippingUSD, currency))}
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-700">
+                  <span>Tax (8.75%)</span>
+                  <span className="font-medium">{formatPrice(totals.taxUSD, currency)}</span>
+                </div>
+                <div className="pt-2 border-t border-emerald-200 flex justify-between text-base font-extrabold text-slate-900">
+                  <span>Final Total</span>
+                  <span className="text-emerald-700">{formatPrice(finalTotalUSD, currency)}</span>
+                </div>
               </div>
             </div>
           )}
 
         </div>
 
-        {/* Modal Navigation Buttons Footer */}
-        <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-850 flex items-center justify-between gap-3">
+        {/* Modal Actions Footer */}
+        <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/80 flex items-center justify-between gap-3">
           {currentStep > 1 ? (
             <button
-              type="button"
               onClick={() => setCurrentStep(currentStep - 1)}
               disabled={isProcessing}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium border border-slate-700 transition-colors flex items-center gap-1.5 touch-target"
+              className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold border border-slate-200 flex items-center gap-1.5 touch-target"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back</span>
             </button>
           ) : (
             <button
-              type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium border border-slate-700 transition-colors touch-target"
+              disabled={isProcessing}
+              className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold border border-slate-200 touch-target"
             >
               Cancel
             </button>
@@ -697,27 +744,25 @@ export default function CheckoutModal({
 
           {currentStep < 4 ? (
             <button
-              type="button"
               onClick={() => {
                 if (currentStep === 1 && !validateStep1()) {
-                  alert('Please fill out all required address fields.');
+                  alert('Please fill all required address fields.');
                   return;
                 }
                 setCurrentStep(currentStep + 1);
               }}
-              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition-all hover:scale-[1.01] touch-target"
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/30 flex items-center gap-1.5 touch-target"
             >
               <span>Continue</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <button
-              type="button"
               onClick={handlePlaceOrder}
               disabled={isProcessing}
-              className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm sm:text-base flex items-center gap-2 shadow-lg shadow-emerald-600/40 transition-all hover:scale-[1.02] active:scale-[0.98] touch-target"
+              className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-emerald-600/30 flex items-center gap-2 touch-target transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              <CheckCircle2 className="w-5 h-5" />
+              <ShieldCheck className="w-4 h-4" />
               <span>Place Order ({formatPrice(finalTotalUSD, currency)})</span>
             </button>
           )}

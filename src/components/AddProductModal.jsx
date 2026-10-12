@@ -4,6 +4,8 @@ import {
   PlusCircle, 
   Star, 
   Image as ImageIcon, 
+  Camera, 
+  Upload, 
   Check, 
   Sparkles, 
   AlertCircle,
@@ -49,6 +51,30 @@ export default function AddProductModal({
     }
   };
 
+  // Native camera / photo gallery upload handler
+  const handleImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setFormError('Please select a valid image file (PNG, JPG, WebP).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Data = event.target?.result;
+      if (base64Data) {
+        setImageUrl(base64Data);
+        setFormError('');
+      }
+    };
+    reader.onerror = () => {
+      setFormError('Failed to read image file. Please try again.');
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleAutoFillSample = () => {
     setTitle('Bio-Based Hempcrete Wall Blocks');
     setCategory('Insulation');
@@ -89,7 +115,10 @@ export default function AddProductModal({
       category,
       price: parseFloat(finalPriceUsd.toFixed(2)),
       unit: unit || 'unit',
-      ecoRating: Number(ecoRating),
+      ecoRating: Number(ecoRating) || 5.0,
+      rating: Number(ecoRating) || 5.0,
+      reviewsCount: 1,
+      carbonSavedPerUnit: 15.0,
       certifications: selectedCerts,
       imageUrl: imageUrl.trim() || DEFAULT_FALLBACK_IMAGE,
       description: description.trim() || 'High-performance eco-friendly architectural building material.',
@@ -125,24 +154,24 @@ export default function AddProductModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-[#F6F5EF]/80 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-2xl bg-[#F6F5EF] border border-slate-750 rounded-2xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-2xl bg-white border border-emerald-100 rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[92vh]">
         
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-[#C5D5C1] bg-slate-850 flex items-center justify-between">
+        <div className="p-4 sm:p-5 border-b border-emerald-100 bg-emerald-50/50 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-emerald-600/10 text-emerald-700 flex items-center justify-center">
               <PlusCircle className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#292824] flex items-center gap-2">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 Add New Eco Product
               </h2>
-              <p className="text-xs text-[#647564]">
+              <p className="text-xs text-slate-500">
                 Register sustainable building materials into the live catalog
               </p>
             </div>
@@ -152,17 +181,17 @@ export default function AddProductModal({
             <button
               type="button"
               onClick={handleAutoFillSample}
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-800/60 text-xs hover:bg-emerald-900 transition-colors"
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-100/80 text-emerald-800 border border-emerald-200 text-xs font-semibold hover:bg-emerald-200/80 transition-colors"
               title="Populate with sample data"
             >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
               <span>Sample Demo Data</span>
             </button>
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-[#647564] hover:text-[#292824] hover:bg-white transition-colors touch-target"
-              aria-label="Close"
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors touch-target"
+              aria-label="Close dialog"
             >
               <X className="w-5 h-5" />
             </button>
@@ -170,42 +199,42 @@ export default function AddProductModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-5">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1 text-slate-800">
           
           {formError && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 animate-shake">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-500" />
               <span>{formError}</span>
             </div>
           )}
 
           {/* Product Title */}
           <div>
-            <label className="block text-xs font-semibold text-[#405847] uppercase tracking-wider mb-1.5">
-              Product Title <span className="text-emerald-400">*</span>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Product Title <span className="text-emerald-600">*</span>
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. Cross-Laminated Timber (CLT) Structural Slabs"
+              placeholder="e.g. Compressed Straw Acoustic Wall Panel"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-[#C5D5C1] rounded-xl text-sm text-[#292824] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
-          {/* Category & Pricing Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Category, Price and Unit Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             
             {/* Category Dropdown */}
             <div>
-              <label className="block text-xs font-semibold text-[#405847] uppercase tracking-wider mb-1.5">
-                Category <span className="text-emerald-400">*</span>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Category <span className="text-emerald-600">*</span>
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-[#C5D5C1] rounded-xl text-sm text-[#292824] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 {availableCategories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -217,11 +246,11 @@ export default function AddProductModal({
 
             {/* Unit Price */}
             <div>
-              <label className="block text-xs font-semibold text-[#405847] uppercase tracking-wider mb-1.5">
-                Unit Price ({currentCurrency === 'USD' ? '$ USD' : '₹ INR'}) <span className="text-emerald-400">*</span>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Unit Price ({currentCurrency === 'USD' ? '$ USD' : '₹ INR'}) <span className="text-emerald-600">*</span>
               </label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#647564] text-sm font-semibold">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">
                   {currentCurrency === 'USD' ? '$' : '₹'}
                 </span>
                 <input
@@ -232,20 +261,20 @@ export default function AddProductModal({
                   placeholder="45.00"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="w-full pl-8 pr-3.5 py-2.5 bg-white border border-[#C5D5C1] rounded-xl text-sm text-[#292824] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full pl-8 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
             </div>
 
             {/* Unit of Measure */}
             <div>
-              <label className="block text-xs font-semibold text-[#405847] uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                 Unit Metric
               </label>
               <select
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-[#C5D5C1] rounded-xl text-sm text-[#292824] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="sq.m">sq.m (Square Meter)</option>
                 <option value="sq.ft">sq.ft (Square Foot)</option>
@@ -261,10 +290,10 @@ export default function AddProductModal({
 
           {/* Eco-Rating Picker (1 to 5 Stars) */}
           <div>
-            <label className="block text-xs font-semibold text-[#405847] uppercase tracking-wider mb-1.5">
-              Eco-Rating ({ecoRating} / 5 Stars) <span className="text-emerald-400">*</span>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Eco-Rating ({ecoRating} / 5 Stars) <span className="text-emerald-600">*</span>
             </label>
-            <div className="flex items-center gap-2 p-3 bg-white/80 rounded-xl border border-[#C5D5C1]">
+            <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   type="button"
@@ -276,13 +305,13 @@ export default function AddProductModal({
                   <Star
                     className={`w-6 h-6 transition-colors ${
                       star <= ecoRating
-                        ? 'text-amber-400 fill-amber-400'
-                        : 'text-slate-600 hover:text-[#647564]'
+                        ? 'text-amber-500 fill-amber-400'
+                        : 'text-slate-300 hover:text-slate-400'
                     }`}
                   />
                 </button>
               ))}
-              <span className="text-xs text-[#647564] ml-2 font-medium">
+              <span className="text-xs text-slate-600 ml-2 font-medium">
                 {ecoRating === 5 && '🌟 Maximum Circular & Low-Carbon Performance'}
                 {ecoRating === 4 && '🌿 High Sustainability Standard'}
                 {ecoRating <= 3 && '🍃 Eco-Compliant'}
@@ -292,19 +321,20 @@ export default function AddProductModal({
 
           {/* Sustainability Certifications (Checkboxes) */}
           <div>
-            <label className="block text-xs font-semibold text-[#405847] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Sustainability Certifications
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {CERTIFICATIONS.map((cert) => {
                 const checked = selectedCerts.includes(cert);
+
                 return (
                   <label
                     key={cert}
                     className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer select-none transition-colors ${
                       checked
-                        ? 'bg-emerald-950/70 border-emerald-500/60 text-emerald-200'
-                        : 'bg-white/80 border-[#C5D5C1] text-[#405847] hover:bg-slate-750'
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-semibold'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-emerald-50/50'
                     }`}
                   >
                     <input
@@ -316,62 +346,86 @@ export default function AddProductModal({
                     <div
                       className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
                         checked
-                          ? 'bg-emerald-500 border-emerald-500 text-[#292824]'
-                          : 'border-slate-500'
+                          ? 'bg-emerald-600 border-emerald-600 text-white'
+                          : 'border-slate-400 bg-white'
                       }`}
                     >
                       {checked && <Check className="w-3 h-3 stroke-[3]" />}
                     </div>
-                    <span className="text-xs font-medium">{cert}</span>
+                    <span className="text-xs">{cert}</span>
                   </label>
                 );
               })}
             </div>
           </div>
 
-          {/* Image URL with Preview & Fallback */}
+          {/* Native Image Upload & URL input with Preview */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-[#405847] uppercase tracking-wider">
-                Image URL (With Default Fallback)
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Product Image (Upload Photo or URL)
               </label>
               <button
                 type="button"
                 onClick={() => setImageUrl(DEFAULT_FALLBACK_IMAGE)}
-                className="text-xs text-emerald-400 hover:underline flex items-center gap-1"
+                className="text-xs text-emerald-700 font-semibold hover:underline flex items-center gap-1"
               >
-                <Leaf className="w-3 h-3" />
+                <Leaf className="w-3.5 h-3.5 text-emerald-600" />
                 Use Eco Stock Image
               </button>
             </div>
-            <div className="flex gap-3">
-              <input
-                type="url"
-                placeholder="https://images.unsplash.com/photo-..."
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="flex-1 px-3.5 py-2.5 bg-white border border-[#C5D5C1] rounded-xl text-sm text-[#292824] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <div className="w-12 h-11 rounded-xl bg-white border border-[#C5D5C1] overflow-hidden flex-shrink-0 flex items-center justify-center">
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt="Preview"
-                    onError={(e) => {
-                      e.target.src = DEFAULT_FALLBACK_IMAGE;
-                    }}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <ImageIcon className="w-5 h-5 text-slate-500" />
-                )}
+
+            {/* Hidden native input for camera/photos */}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              id="product-image-upload"
+              onChange={handleImageFileChange}
+              className="hidden"
+            />
+
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <label
+                  htmlFor="product-image-upload"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer shadow-xs transition-colors touch-target"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>📷 Take Photo / Upload File</span>
+                </label>
+                <span className="text-xs text-slate-400">or enter an image URL below:</span>
+              </div>
+
+              <div className="flex gap-3">
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/photo-..."
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <div className="w-12 h-11 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt="Preview"
+                      onError={(e) => {
+                        e.target.src = DEFAULT_FALLBACK_IMAGE;
+                      }}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <ImageIcon className="w-5 h-5 text-slate-400" />
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Short Description */}
           <div>
-            <label className="block text-xs font-semibold text-[#405847] uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Short Description
             </label>
             <textarea
@@ -379,79 +433,80 @@ export default function AddProductModal({
               placeholder="Highlight circular lifecycle, thermal insulation, or structural benefits..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2 bg-white border border-[#C5D5C1] rounded-xl text-sm text-[#292824] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           {/* Technical Specifications Section */}
-          <div className="pt-2 border-t border-[#C5D5C1]">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#647564] mb-3 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <div className="pt-2 border-t border-slate-200">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               Technical Specifications (Optional)
             </h4>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block text-[#647564] mb-1">Dimensions / Sizing</label>
+                <label className="block text-slate-600 font-semibold mb-1">Dimensions / Sizing</label>
                 <input
                   type="text"
                   placeholder="e.g. 1200mm x 600mm x 25mm"
                   value={dimensions}
                   onChange={(e) => setDimensions(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#C5D5C1] rounded-lg text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[#647564] mb-1">Embodied Carbon Metric</label>
+                <label className="block text-slate-600 font-semibold mb-1">Embodied Carbon Metric</label>
                 <input
                   type="text"
-                  placeholder="e.g. -12.4 kg CO₂e / m² or 2.1 kg CO₂e"
+                  placeholder="e.g. -12 kg CO₂e / unit"
                   value={embodiedCarbon}
                   onChange={(e) => setEmbodiedCarbon(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#C5D5C1] rounded-lg text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[#647564] mb-1">Durability / R-Value / Strength</label>
+                <label className="block text-slate-600 font-semibold mb-1">Durability / Strength</label>
                 <input
                   type="text"
-                  placeholder="e.g. R-15 Thermal / Class A Fire Rating"
+                  placeholder="e.g. Heavy Commercial Rating"
                   value={durability}
                   onChange={(e) => setDurability(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#C5D5C1] rounded-lg text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[#647564] mb-1">LEED / Green Building Points</label>
+                <label className="block text-slate-600 font-semibold mb-1">LEED v4.1 Contribution</label>
                 <input
                   type="text"
-                  placeholder="e.g. MR Credit 4 & EQ Credit 2"
+                  placeholder="e.g. MR Credit 2 & EQ Credit 2"
                   value={leedContribution}
                   onChange={(e) => setLeedContribution(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#C5D5C1] rounded-lg text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
-          {/* Form Actions */}
-          <div className="pt-4 border-t border-[#C5D5C1] flex items-center justify-end gap-3">
+          {/* Form Actions Footer */}
+          <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-700 text-[#405847] hover:text-[#292824] text-xs sm:text-sm font-medium border border-[#C5D5C1] transition-colors touch-target"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold transition-colors touch-target"
             >
               Cancel
             </button>
+
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-[#292824] font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] touch-target"
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/30 flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-[0.98] touch-target"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>Publish & Save to Catalog</span>
+              <span>Publish to Catalog</span>
             </button>
           </div>
 

@@ -40,3 +40,18 @@ export const calculateCartTotals = (cartItems, currency = 'USD') => {
     amountNeededForFreeShippingUSD: Math.max(0, 100 - subtotalUSD)
   };
 };
+
+/**
+ * Calculates dynamic carbon savings (in kg CO₂e) based on items in the cart or order.
+ */
+export const calculateCarbonSaved = (cartItems = []) => {
+  if (!cartItems || cartItems.length === 0) return 0;
+  return cartItems.reduce((total, item) => {
+    const unitCarbon = item.carbonSavedPerUnit !== undefined ? Number(item.carbonSavedPerUnit) : 15.0;
+    return total + (unitCarbon * (item.quantity || 1));
+  }, 0);
+};
+
+export const formatCarbonSaved = (kg) => {
+  return `${(Math.round(kg * 10) / 10).toFixed(1)} kg CO₂e`;
+};

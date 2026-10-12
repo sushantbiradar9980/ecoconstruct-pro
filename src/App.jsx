@@ -13,6 +13,7 @@ import OrderHistoryModal from './components/OrderHistoryModal';
 import InstallPwaModal from './components/InstallPwaModal';
 import FeedbackModal from './components/FeedbackModal';
 import { getTimeOfDay, THEMES } from './utils/theme';
+import { CATEGORIES } from './data/defaultProducts';
 import { 
   loadStoredProducts, 
   saveStoredProducts, 
@@ -25,12 +26,8 @@ import {
 } from './utils/storage';
 import { 
   Leaf, 
-  Sparkles, 
   ShieldCheck, 
-  Heart, 
-  RefreshCw, 
-  CheckCircle2, 
-  ArrowUp
+  CheckCircle2
 } from 'lucide-react';
 
 export default function App() {
@@ -59,6 +56,16 @@ export default function App() {
   const [selectedCertifications, setSelectedCertifications] = useState([]);
   const [sortBy, setSortBy] = useState('featured');
   const [mobileActiveTab, setMobileActiveTab] = useState('catalog');
+
+  // Dynamically compute all unique categories from default list + products
+  const allCategories = useMemo(() => {
+    const set = new Set(['All']);
+    CATEGORIES.forEach(c => set.add(c));
+    products.forEach(p => {
+      if (p.category) set.add(p.category);
+    });
+    return Array.from(set);
+  }, [products]);
 
   // Modal Open / Close States
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -173,12 +180,13 @@ export default function App() {
   };
 
   // Add New Product dynamically from Admin Modal
+  // Immediately prepend, save, and auto-reset filters so new product is immediately visible
   const handleAddProduct = (newProduct) => {
     setProducts((prev) => [newProduct, ...prev]);
-    // Ensure category doesn't filter out newly created product
-    if (selectedCategory !== 'All' && selectedCategory !== newProduct.category) {
-      setSelectedCategory('All');
-    }
+    setSelectedCategory('All');
+    setSearchQuery('');
+    setMinRating(0);
+    setSelectedCertifications([]);
     showToast(`New material "${newProduct.title}" added to catalog! 🌱`);
   };
 
@@ -215,9 +223,9 @@ export default function App() {
       list = list.filter((p) => p.category === selectedCategory);
     }
 
-    // 3. Min Eco-Rating Filter
+    // 3. Min Eco-Rating Filter (Dynamic threshold)
     if (minRating > 0) {
-      list = list.filter((p) => p.ecoRating >= minRating);
+      list = list.filter((p) => (Number(p.ecoRating || p.rating || 0)) >= minRating);
     }
 
     // 4. Certifications Filter
@@ -235,7 +243,7 @@ export default function App() {
     } else if (sortBy === 'price-desc') {
       list.sort((a, b) => b.price - a.price);
     } else if (sortBy === 'rating') {
-      list.sort((a, b) => b.ecoRating - a.ecoRating);
+      list.sort((a, b) => Number(b.ecoRating || b.rating || 0) - Number(a.ecoRating || a.rating || 0));
     }
 
     return list;
@@ -245,17 +253,17 @@ export default function App() {
   const totalCartUSD = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   return (
-    <div className={`min-h-screen flex flex-col ${currentTheme.bgPage} text-slate-100 selection:bg-emerald-600 selection:text-[#263D30] pb-20 md:pb-0 transition-colors duration-700`}>
+    <div className={`min-h-screen flex flex-col ${currentTheme.bgPage} text-slate-800 selection:bg-emerald-600 selection:text-white pb-20 md:pb-0 transition-colors duration-700`}>
       
       {/* Toast Notification Alert Banner */}
       {toastMessage && (
-        <div className="fixed top-20 right-4 z-50 max-w-sm p-3.5 rounded-2xl bg-emerald-950/95 border border-emerald-500/50 text-emerald-200 text-xs font-semibold shadow-2xl flex items-center gap-2.5 animate-slideInRight backdrop-blur-md">
+        <div className="fixed top-20 right-4 z-50 max-w-sm p-3.5 rounded-2xl bg-slate-900/95 text-white border border-emerald-500/50 text-xs font-semibold shadow-2xl flex items-center gap-2.5 animate-slideInRight backdrop-blur-md">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
           <span className="truncate">{toastMessage}</span>
         </div>
       )}
 
-      {/* Top Navigation with Fixed Mobile Layout */}
+      {/* Top Navigation */}
       <Navbar
         cartCount={totalCartCount}
         cartTotalUSD={totalCartUSD}
@@ -292,21 +300,22 @@ export default function App() {
           sortBy={sortBy}
           setSortBy={setSortBy}
           totalResults={filteredProducts.length}
+          categories={allCategories}
         />
       </div>
 
       {/* Main Product Catalog Section */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         
-        {/* Active Filter Status & Reset Helper */}
+        {/* Active Search Status Banner */}
         {searchQuery && (
-          <div className="mb-6 flex items-center justify-between p-3 rounded-xl bg-slate-800/80 border border-slate-700 text-xs">
+          <div className="mb-6 flex items-center justify-between p-3 rounded-xl bg-white border border-emerald-200 text-xs text-slate-700 shadow-xs">
             <span>
-              Searching for: <strong className="text-[#263D30]">"{searchQuery}"</strong>
+              Searching for: <strong className="text-slate-900 font-bold">"{searchQuery}"</strong>
             </span>
             <button
               onClick={() => setSearchQuery('')}
-              className="text-emerald-400 hover:underline"
+              className="text-emerald-700 font-bold hover:underline"
             >
               Clear Search
             </button>
@@ -328,12 +337,12 @@ export default function App() {
           </div>
         ) : (
           <div className="py-20 text-center space-y-4 max-w-md mx-auto">
-            <div className="w-16 h-16 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto text-[#526B58]">
-              <Leaf className="w-8 h-8 text-slate-500" />
+            <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto text-emerald-600">
+              <Leaf className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-bold text-[#263D30]">No eco-materials found</h3>
-            <p className="text-xs sm:text-sm text-[#405847]">
-              No materials match your current category, rating, or search filter.
+            <h3 className="text-lg font-bold text-slate-900">No eco-materials found</h3>
+            <p className="text-xs sm:text-sm text-slate-600">
+              No materials match your current category, rating threshold, or search filter.
             </p>
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
@@ -343,13 +352,13 @@ export default function App() {
                   setMinRating(0);
                   setSelectedCertifications([]);
                 }}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-[#263D30] text-xs font-semibold border border-slate-700 transition-colors"
+                className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 transition-colors shadow-xs"
               >
                 Reset All Filters
               </button>
               <button
                 onClick={() => setIsAddProductOpen(true)}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-[#263D30] text-xs font-semibold shadow-md transition-colors"
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-colors"
               >
                 + Add Custom Material
               </button>
@@ -359,51 +368,49 @@ export default function App() {
 
       </main>
 
-      {/* Footer */}
-      ```jsx
-<footer className="mt-16 bg-[#DCE8D8] border-t border-[#C5D5C1] text-xs text-[#405847] py-12">
-```
+      {/* Clean Light-Themed Footer */}
+      <footer className="mt-16 bg-white/80 border-t border-emerald-100 text-xs text-slate-600 py-12 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-3 md:col-span-2">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-[#263D30]">
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
                   <Leaf className="w-5 h-5" />
                 </div>
-                <span className="font-extrabold text-base text-[#263D30]">EcoConstruct Pro</span>
+                <span className="font-extrabold text-base text-slate-900">EcoConstruct Pro</span>
               </div>
-              <p className="text-[#405847] max-w-md text-xs leading-relaxed">
+              <p className="text-slate-600 max-w-md text-xs leading-relaxed">
                 The leading marketplace for carbon-neutral, circular, and certified green construction materials. Empowering commercial contractors, green architects, and homebuilders to build a sustainable planet.
               </p>
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold">
-                <ShieldCheck className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-emerald-700 text-xs font-semibold">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 <span>USGBC Member • FSC Chain of Custody Verified</span>
               </div>
             </div>
 
             <div>
-              <h4 className="font-bold text-[#263D30] uppercase tracking-wider mb-3">Categories</h4>
-              <ul className="space-y-1.5">
-                <li><button onClick={() => { setSelectedCategory('Bamboo'); window.scrollTo({ top: 350, behavior: 'smooth' }); }} className="hover:text-emerald-400">Strand Bamboo Flooring</button></li>
-                <li><button onClick={() => { setSelectedCategory('Roofing'); window.scrollTo({ top: 350, behavior: 'smooth' }); }} className="hover:text-emerald-400">Recycled Steel & Sedum Roofs</button></li>
-                <li><button onClick={() => { setSelectedCategory('Insulation'); window.scrollTo({ top: 350, behavior: 'smooth' }); }} className="hover:text-emerald-400">Hemp & Bio-Insulation</button></li>
-                <li><button onClick={() => { setSelectedCategory('Composites'); window.scrollTo({ top: 350, behavior: 'smooth' }); }} className="hover:text-emerald-400">Ocean-Plastic Decking</button></li>
+              <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">Categories</h4>
+              <ul className="space-y-1.5 text-slate-600">
+                <li><button onClick={() => { setSelectedCategory('Bamboo'); window.scrollTo({ top: 350, behavior: 'smooth' }); }} className="hover:text-emerald-700">Strand Bamboo Flooring</button></li>
+                <li><button onClick={() => { setSelectedCategory('Roofing'); window.scrollTo({ top: 350, behavior: 'smooth' }); }} className="hover:text-emerald-700">Recycled Steel & Sedum Roofs</button></li>
+                <li><button onClick={() => { setSelectedCategory('Insulation'); window.scrollTo({ top: 350, behavior: 'smooth' }); }} className="hover:text-emerald-700">Hemp & Bio-Insulation</button></li>
+                <li><button onClick={() => { setSelectedCategory('Composites'); window.scrollTo({ top: 350, behavior: 'smooth' }); }} className="hover:text-emerald-700">Ocean-Plastic Decking</button></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-bold text-[#263D30] uppercase tracking-wider mb-3">PWA Platform</h4>
-              <ul className="space-y-1.5">
-                <li><button onClick={() => setIsInstallModalOpen(true)} className="hover:text-emerald-400">Install Mobile App</button></li>
-                <li><button onClick={() => setIsOrderHistoryOpen(true)} className="hover:text-emerald-400">Track Order Status</button></li>
-                <li><button onClick={() => setIsAddProductOpen(true)} className="hover:text-emerald-400">List Architectural Material</button></li>
-                <li><span className="text-emerald-400/80">Offline Local Storage Ready</span></li>
+              <h4 className="font-bold text-slate-900 uppercase tracking-wider mb-3">PWA Platform</h4>
+              <ul className="space-y-1.5 text-slate-600">
+                <li><button onClick={() => setIsInstallModalOpen(true)} className="hover:text-emerald-700">Install Mobile App</button></li>
+                <li><button onClick={() => setIsOrderHistoryOpen(true)} className="hover:text-emerald-700">Track Order Status</button></li>
+                <li><button onClick={() => setIsAddProductOpen(true)} className="hover:text-emerald-700">List Architectural Material</button></li>
+                <li><span className="text-emerald-700 font-medium">Offline Local Storage Ready</span></li>
               </ul>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-[#C5D5C1] flex flex-col sm:flex-row items-center justify-between gap-4 text-[#526B58] text-[11px]">
+          <div className="pt-6 border-t border-emerald-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
             <div>
               © {new Date().getFullYear()} EcoConstruct Pro Inc. All environmental metrics certified.
             </div>
