@@ -20,6 +20,7 @@ export default function OrderConfirmationModal({
   order,
   isOpen,
   onClose,
+  onTrackOrder,
   currency
 }) {
   const [supplierRating, setSupplierRating] = useState(0);
@@ -273,18 +274,33 @@ export default function OrderConfirmationModal({
         </div>
 
         {/* Modal Actions Footer */}
-        <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/80 flex items-center justify-between gap-3">
-          <button
-            onClick={handlePrint}
-            className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold border border-slate-200 flex items-center gap-1.5 touch-target"
-          >
-            <Printer className="w-4 h-4" />
-            <span>Print Receipt</span>
-          </button>
+        <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/80 flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrint}
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold border border-slate-200 flex items-center gap-1.5 touch-target"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Print Receipt</span>
+            </button>
+
+            {onTrackOrder && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onTrackOrder(order);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-emerald-100/70 hover:bg-emerald-100 text-emerald-800 text-xs sm:text-sm font-bold border border-emerald-300 flex items-center gap-1.5 touch-target"
+              >
+                <Truck className="w-4 h-4 text-emerald-700" />
+                <span>Track Order</span>
+              </button>
+            )}
+          </div>
 
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-600/30 flex items-center gap-2 touch-target"
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-600/30 flex items-center gap-1.5 touch-target ml-auto"
           >
             <span>Continue Shopping</span>
             <ArrowRight className="w-4 h-4" />

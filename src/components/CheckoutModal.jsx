@@ -116,17 +116,66 @@ export default function CheckoutModal({
         formattedPaymentMethod = 'Pay Later / 30-Day Green Trade Credit';
       }
 
+      const now = new Date();
+      const formattedDate = now.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+      const timeline = [
+        {
+          stage: 'Order Placed (Confirmed)',
+          timestamp: formattedDate,
+          completed: true,
+          current: false,
+          detail: 'Order payment confirmed. Eco-materials allocated in warehouse inventory.'
+        },
+        {
+          stage: 'Processing & Quality Check (Eco-certified inspection)',
+          timestamp: 'In Progress (Active Inspection)',
+          completed: true,
+          current: true,
+          detail: 'Eco-certified quality inspection & zero-waste palletizing underway.'
+        },
+        {
+          stage: 'Shipped & In Transit (Carrier assigned with dispatch location)',
+          timestamp: 'Scheduled EV Carrier Dispatch',
+          completed: false,
+          current: false,
+          detail: 'Carrier: Pacific Green EV Logistics (Fleet #EV-721) • Cascadia Depot.'
+        },
+        {
+          stage: 'Out for Delivery (Estimated delivery window/time)',
+          timestamp: shippingMethod === 'express' ? 'Estimated within 24-48 hrs' : 'Estimated within 3-5 days',
+          completed: false,
+          current: false,
+          detail: 'Zero-emission electric heavy van dispatch to job site.'
+        },
+        {
+          stage: 'Delivered',
+          timestamp: 'Pending Delivery',
+          completed: false,
+          current: false,
+          detail: 'Signature upon loading dock delivery & LEED credit certificate handover.'
+        }
+      ];
+
       const newOrder = {
         id: orderId,
-        date: new Date().toISOString(),
-        items: [...cartItems],
+        date: now.toISOString(),
+        items: cartItems.map(item => ({
+          ...item,
+          ecoScore: item.ecoScore || 90
+        })),
         totalUSD: finalTotalUSD,
-        shippingMethod: shippingMethod === 'express' ? 'Express Zero-Emission' : 'Standard Green Shipping',
+        shippingMethod: shippingMethod === 'express' ? 'Express Zero-Emission Electric Freight' : 'Standard Green Shipping',
         shippingAddress: { ...shippingAddress },
+        destination: `${shippingAddress.streetAddress}, ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zipCode}`,
         paymentMethod: formattedPaymentMethod,
         currency,
-        status: 'Confirmed - Preparing for EV Dispatch',
-        estimatedDelivery: shippingMethod === 'express' ? '1 - 2 Business Days' : '3 - 5 Business Days'
+        status: 'Processing & Quality Check',
+        currentStageIndex: 1,
+        carrier: 'Pacific Green EV Logistics (Fleet #EV-721)',
+        dispatchLocation: 'Pacific Northwest Eco-Fulfillment Hub',
+        estimatedDelivery: shippingMethod === 'express' ? '1 - 2 Business Days' : '3 - 5 Business Days',
+        timeline
       };
 
       setIsProcessing(false);

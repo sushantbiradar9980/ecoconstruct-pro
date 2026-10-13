@@ -5,6 +5,7 @@ export default function MobileBottomNav({
   activeTab,
   setActiveTab,
   cartCount,
+  ordersCount = 0,
   onOpenCart,
   onOpenAddModal,
   onOpenOrdersModal
@@ -69,12 +70,19 @@ export default function MobileBottomNav({
           <span className="text-[10px]">Cart</span>
         </button>
 
-        {/* Orders */}
+        {/* Orders with badge */}
         <button
           onClick={onOpenOrdersModal}
-          className="flex flex-col items-center justify-center h-full touch-target text-slate-500 hover:text-emerald-700 transition-colors"
+          className="relative flex flex-col items-center justify-center h-full touch-target text-slate-500 hover:text-emerald-700 transition-colors"
         >
-          <Package className="w-5 h-5 mb-0.5" />
+          <div className="relative">
+            <Package className="w-5 h-5 mb-0.5" />
+            {ordersCount > 0 && (
+              <span className="absolute -top-1.5 -right-2 bg-emerald-700 text-white font-bold text-[10px] min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center shadow">
+                {ordersCount}
+              </span>
+            )}
+          </div>
           <span className="text-[10px]">Orders</span>
         </button>
 

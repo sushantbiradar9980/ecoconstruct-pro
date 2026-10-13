@@ -267,6 +267,7 @@ export default function App() {
       <Navbar
         cartCount={totalCartCount}
         cartTotalUSD={totalCartUSD}
+        ordersCount={orders.length}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenAddModal={() => setIsAddProductOpen(true)}
         onOpenOrdersModal={() => setIsOrderHistoryOpen(true)}
@@ -429,6 +430,7 @@ export default function App() {
         activeTab={mobileActiveTab}
         setActiveTab={setMobileActiveTab}
         cartCount={totalCartCount}
+        ordersCount={orders.length}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenAddModal={() => setIsAddProductOpen(true)}
         onOpenOrdersModal={() => setIsOrderHistoryOpen(true)}
@@ -476,6 +478,7 @@ export default function App() {
         order={confirmedOrder}
         isOpen={!!confirmedOrder}
         onClose={() => setConfirmedOrder(null)}
+        onTrackOrder={() => setIsOrderHistoryOpen(true)}
         currency={currency}
       />
 

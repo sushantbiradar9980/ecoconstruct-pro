@@ -17,6 +17,7 @@ import { formatPrice } from '../utils/formatters';
 export default function Navbar({
   cartCount,
   cartTotalUSD = 0,
+  ordersCount = 0,
   onOpenCart,
   onOpenAddModal,
   onOpenOrdersModal,
@@ -120,16 +121,6 @@ export default function Navbar({
               <span>{canInstall ? 'Install App' : 'PWA App'}</span>
             </button>
 
-            {/* Order History */}
-            <button
-              onClick={onOpenOrdersModal}
-              className="flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors"
-              title="Order History"
-            >
-              <Package className="w-4 h-4 text-emerald-600" />
-              <span className="hidden md:inline">Orders</span>
-            </button>
-
             {/* + Add Material Button */}
             <button
               onClick={onOpenAddModal}
@@ -137,6 +128,22 @@ export default function Navbar({
             >
               <PlusCircle className="w-4 h-4" />
               <span>+ Add Material</span>
+            </button>
+
+            {/* My Orders Button with Badge - Positioned right next to Cart button */}
+            <button
+              onClick={onOpenOrdersModal}
+              className="relative flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-800 hover:text-slate-900 transition-colors touch-target"
+              title="My Orders & Live Tracking"
+              aria-label="My Orders"
+            >
+              <Package className="w-4 h-4 text-emerald-600" />
+              <span className="hidden md:inline font-bold">My Orders</span>
+              {ordersCount > 0 && (
+                <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold text-[10px] min-w-[18px] h-4 px-1 rounded-full flex items-center justify-center">
+                  {ordersCount}
+                </span>
+              )}
             </button>
 
             {/* Shopping Cart Button with Badge */}
@@ -161,7 +168,7 @@ export default function Navbar({
            ========================================================================= */}
         <div className="sm:hidden py-2.5 space-y-2">
           
-          {/* Row 1: Brand Title on Left + Currency, Theme & Cart Badge on Right */}
+          {/* Row 1: Brand Title on Left + Currency, Theme, My Orders & Cart Badge on Right */}
           <div className="flex items-center justify-between gap-2">
             
             {/* Logo + Title */}
@@ -177,13 +184,13 @@ export default function Navbar({
               </span>
             </div>
 
-            {/* Controls Row on Right: Theme, Currency, Cart */}
+            {/* Controls Row on Right: Theme, Currency, My Orders, Cart */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
               
               {/* Theme Cycle Button */}
               <button
                 onClick={onCycleTheme}
-                className="p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 hover:text-slate-900 touch-target min-w-[36px] min-h-[36px]"
+                className="p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 hover:text-slate-900 touch-target min-w-[34px] min-h-[34px]"
                 title={`Current palette: ${theme.name}. Tap to change.`}
               >
                 {getPeriodIcon()}
@@ -192,16 +199,31 @@ export default function Navbar({
               {/* Currency Toggle */}
               <button
                 onClick={() => setCurrency(prev => prev === 'USD' ? 'INR' : 'USD')}
-                className="px-2 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800 touch-target min-h-[36px]"
+                className="px-2 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800 touch-target min-h-[34px]"
                 title="Toggle Currency"
               >
                 {currency === 'USD' ? '$' : '₹'}
               </button>
 
+              {/* My Orders Button with Badge - Positioned right next to Cart button on mobile */}
+              <button
+                onClick={onOpenOrdersModal}
+                className="relative p-2 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:text-slate-900 touch-target min-w-[34px] min-h-[34px]"
+                title="My Orders & Live Tracking"
+                aria-label="My Orders"
+              >
+                <Package className="w-4 h-4 text-emerald-600" />
+                {ordersCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-emerald-700 text-white font-bold text-[10px] min-w-[17px] h-4 px-1 rounded-full flex items-center justify-center shadow">
+                    {ordersCount}
+                  </span>
+                )}
+              </button>
+
               {/* Cart Button */}
               <button
                 onClick={onOpenCart}
-                className="relative p-2 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:text-slate-900 touch-target min-w-[36px] min-h-[36px]"
+                className="relative p-2 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:text-slate-900 touch-target min-w-[34px] min-h-[34px]"
                 aria-label="Shopping Cart"
               >
                 <ShoppingCart className="w-4 h-4 text-emerald-600" />
