@@ -1,16 +1,18 @@
 import { DEFAULT_PRODUCTS } from '../data/defaultProducts';
 
-const PRODUCTS_KEY = 'ecoconstruct_pro_products_v3';
+const PRODUCTS_KEY = 'ecoconstruct_pro_products_v4';
+const LEGACY_V3_KEY = 'ecoconstruct_pro_products_v3';
 const LEGACY_V2_KEY = 'ecoconstruct_pro_products_v2';
 const LEGACY_V1_KEY = 'ecoconstruct_pro_products_v1';
 const CART_KEY = 'ecoconstruct_pro_cart_v1';
 const ORDERS_KEY = 'ecoconstruct_orders';
 const LEGACY_ORDERS_KEY = 'ecoconstruct_pro_orders_v1';
 const CURRENCY_KEY = 'ecoconstruct_pro_currency_v1';
+const PROFILE_KEY = 'ecoconstruct_user_profile';
 
 export const loadStoredProducts = () => {
   try {
-    const raw = localStorage.getItem(PRODUCTS_KEY) || localStorage.getItem(LEGACY_V2_KEY) || localStorage.getItem(LEGACY_V1_KEY);
+    const raw = localStorage.getItem(PRODUCTS_KEY) || localStorage.getItem(LEGACY_V3_KEY) || localStorage.getItem(LEGACY_V2_KEY) || localStorage.getItem(LEGACY_V1_KEY);
     if (!raw) {
       localStorage.setItem(PRODUCTS_KEY, JSON.stringify(DEFAULT_PRODUCTS));
       return DEFAULT_PRODUCTS;
@@ -296,3 +298,36 @@ export const saveStoredCurrency = (currency) => {
     console.error('Error saving currency to localStorage:', e);
   }
 };
+
+export const DEFAULT_USER_PROFILE = {
+  isSignedIn: true,
+  name: 'Marcus Vance',
+  email: 'marcus.vance@greenbuilders.org',
+  phone: '+1 (555) 234-8900',
+  address: '742 Evergreen Eco-Way, Suite 400, Seattle, WA 98101',
+  ecoPoints: 480,
+  ecoTier: 'Emerald Architect'
+};
+
+export const loadStoredUserProfile = () => {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(DEFAULT_USER_PROFILE));
+      return DEFAULT_USER_PROFILE;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error('Error loading user profile from localStorage:', e);
+    return DEFAULT_USER_PROFILE;
+  }
+};
+
+export const saveStoredUserProfile = (profile) => {
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  } catch (e) {
+    console.error('Error saving user profile to localStorage:', e);
+  }
+};
+

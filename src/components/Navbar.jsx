@@ -10,7 +10,9 @@ import {
   Sun,
   Sunrise,
   Moon,
-  X
+  X,
+  User,
+  Zap
 } from 'lucide-react';
 import { formatPrice } from '../utils/formatters';
 
@@ -18,6 +20,8 @@ export default function Navbar({
   cartCount,
   cartTotalUSD = 0,
   ordersCount = 0,
+  userProfile,
+  onOpenProfileModal,
   onOpenCart,
   onOpenAddModal,
   onOpenOrdersModal,
@@ -159,6 +163,35 @@ export default function Navbar({
                 </span>
               )}
             </button>
+
+            {/* User Profile / Sign-In Avatar Button (Top-Right Corner) */}
+            <button
+              onClick={onOpenProfileModal}
+              className="flex items-center gap-2 p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 transition-all touch-target"
+              title={userProfile?.isSignedIn ? `Signed in as ${userProfile.name}` : "Sign In / Profile"}
+              aria-label="User Profile"
+            >
+              <div className="relative">
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
+                  {userProfile?.isSignedIn ? (
+                    <span>{userProfile.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'}</span>
+                  ) : (
+                    <User className="w-4 h-4" />
+                  )}
+                </div>
+                {userProfile?.isSignedIn && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                )}
+              </div>
+              <div className="hidden xl:flex flex-col text-left">
+                <span className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[85px]">
+                  {userProfile?.isSignedIn ? userProfile.name.split(' ')[0] : 'Sign In'}
+                </span>
+                <span className="text-[10px] text-emerald-700 font-semibold leading-tight">
+                  {userProfile?.isSignedIn ? `${userProfile.ecoPoints || 480} pts` : 'Account'}
+                </span>
+              </div>
+            </button>
           </div>
         </div>
 
@@ -168,7 +201,7 @@ export default function Navbar({
            ========================================================================= */}
         <div className="sm:hidden py-2.5 space-y-2">
           
-          {/* Row 1: Brand Title on Left + Currency, Theme, My Orders & Cart Badge on Right */}
+          {/* Row 1: Brand Title on Left + Controls on Right */}
           <div className="flex items-center justify-between gap-2">
             
             {/* Logo + Title */}
@@ -184,7 +217,7 @@ export default function Navbar({
               </span>
             </div>
 
-            {/* Controls Row on Right: Theme, Currency, My Orders, Cart */}
+            {/* Controls Row on Right: Theme, Currency, My Orders, Cart, Profile */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
               
               {/* Theme Cycle Button */}
@@ -205,7 +238,7 @@ export default function Navbar({
                 {currency === 'USD' ? '$' : '₹'}
               </button>
 
-              {/* My Orders Button with Badge - Positioned right next to Cart button on mobile */}
+              {/* My Orders Button with Badge */}
               <button
                 onClick={onOpenOrdersModal}
                 className="relative p-2 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:text-slate-900 touch-target min-w-[34px] min-h-[34px]"
@@ -232,6 +265,25 @@ export default function Navbar({
                     {cartCount}
                   </span>
                 )}
+              </button>
+
+              {/* User Profile Avatar Button - Mobile Top-Right Corner */}
+              <button
+                onClick={onOpenProfileModal}
+                className="relative p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 hover:text-slate-900 touch-target min-w-[34px] min-h-[34px] flex items-center justify-center"
+                title="User Profile & Sign In"
+                aria-label="User Profile"
+              >
+                <div className="relative w-6 h-6 rounded-md bg-emerald-600 text-white font-black text-[10px] flex items-center justify-center">
+                  {userProfile?.isSignedIn ? (
+                    userProfile.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'
+                  ) : (
+                    <User className="w-3.5 h-3.5" />
+                  )}
+                  {userProfile?.isSignedIn && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white" />
+                  )}
+                </div>
               </button>
             </div>
 

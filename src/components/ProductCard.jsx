@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, ShieldCheck, ShoppingCart, Eye, Check, Leaf } from 'lucide-react';
+import { Star, ShieldCheck, ShoppingCart, Eye, Check, Leaf, Trash2, Zap } from 'lucide-react';
 import { formatPrice } from '../utils/formatters';
 import { DEFAULT_FALLBACK_IMAGE } from '../data/defaultProducts';
 
@@ -7,7 +7,8 @@ export default function ProductCard({
   product,
   currency,
   onAddToCart,
-  onOpenSpecs
+  onOpenSpecs,
+  onDeleteProduct
 }) {
   const [imgSrc, setImgSrc] = useState(product.imageUrl || DEFAULT_FALLBACK_IMAGE);
   const [isAdded, setIsAdded] = useState(false);
@@ -53,6 +54,11 @@ export default function ProductCard({
               Eco {product.ecoScore}
             </span>
           )}
+          {product.isCustom && (
+            <span className="px-2 py-0.5 rounded-lg bg-amber-500/95 backdrop-blur-md text-white text-[10px] font-extrabold shadow-sm">
+              Custom Material
+            </span>
+          )}
         </div>
 
         {/* Eco Rating Badge with Star Score & Review Tally */}
@@ -60,6 +66,23 @@ export default function ProductCard({
           <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
           <span>★ {ratingScore} ({reviewCount})</span>
         </div>
+
+        {/* 30-Min Green Express & Flash Deal Ribbon */}
+        {(product.isExpressDelivery || product.isFlashSale) && (
+          <div className="absolute bottom-3 left-3 flex flex-wrap items-center gap-1.5 z-10">
+            {product.isExpressDelivery && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500 to-emerald-600 text-white text-[10px] font-black tracking-wide shadow-md">
+                <Zap className="w-3 h-3 fill-white" />
+                <span>⚡ 30-Min Green Express</span>
+              </span>
+            )}
+            {product.discountPercent && (
+              <span className="px-2 py-0.5 rounded-md bg-rose-600 text-white text-[10px] font-black shadow-sm">
+                -{product.discountPercent}% OFF
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Quick Specs Hover Trigger on desktop */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/25 backdrop-blur-[2px] pointer-events-none">
@@ -114,19 +137,42 @@ export default function ProductCard({
         </div>
 
         {/* Pricing & Actions Footer */}
-        <div className="pt-3 border-t border-emerald-100 flex items-center justify-between gap-2">
+        <div className="pt-3 border-t border-emerald-100 flex flex-wrap items-center justify-between gap-2">
           
           <div>
             <div className="text-xs text-slate-500 font-medium">Unit Price</div>
-            <div className="text-lg sm:text-xl font-extrabold text-slate-900">
-              {formatPrice(product.price, currency)}
-              <span className="text-xs font-normal text-slate-500 ml-1">
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              <span className="text-lg sm:text-xl font-extrabold text-slate-900">
+                {formatPrice(product.price, currency)}
+              </span>
+              {product.originalPrice && (
+                <span className="text-xs text-slate-400 line-through">
+                  {formatPrice(product.originalPrice, currency)}
+                </span>
+              )}
+              <span className="text-xs font-normal text-slate-500">
                 /{product.unit || 'unit'}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {/* Selective Deletion: ONLY on custom items (isCustom: true) */}
+            {product.isCustom && onDeleteProduct && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteProduct(product.id);
+                }}
+                className="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 border border-rose-200 transition-colors touch-target shadow-xs flex items-center gap-1"
+                title="Delete Custom Material"
+                aria-label="Delete material"
+              >
+                <Trash2 className="w-4 h-4 text-rose-600" />
+                <span className="hidden sm:inline text-xs font-bold">Delete</span>
+              </button>
+            )}
+
             {/* Specs Preview Modal Button */}
             <button
               onClick={() => onOpenSpecs(product)}

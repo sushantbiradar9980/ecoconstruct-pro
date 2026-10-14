@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import MobileBottomNav from './components/MobileBottomNav';
 import HeroBanner from './components/HeroBanner';
+import FlashSaleBanner from './components/FlashSaleBanner';
 import FilterBar from './components/FilterBar';
 import ProductCard from './components/ProductCard';
 import ProductSpecsModal from './components/ProductSpecsModal';
@@ -12,6 +13,8 @@ import OrderConfirmationModal from './components/OrderConfirmationModal';
 import OrderHistoryModal from './components/OrderHistoryModal';
 import InstallPwaModal from './components/InstallPwaModal';
 import FeedbackModal from './components/FeedbackModal';
+import UserProfileModal from './components/UserProfileModal';
+import IntroSplashOverlay from './components/IntroSplashOverlay';
 import { getTimeOfDay, THEMES } from './utils/theme';
 import { CATEGORIES } from './data/defaultProducts';
 import { 
@@ -21,13 +24,16 @@ import {
   saveStoredCart, 
   loadStoredOrders, 
   saveStoredOrders,
-  loadStoredCurrency,
-  saveStoredCurrency
+  loadStoredCurrency, 
+  saveStoredCurrency,
+  loadStoredUserProfile,
+  saveStoredUserProfile
 } from './utils/storage';
 import { 
   Leaf, 
   ShieldCheck, 
-  CheckCircle2
+  CheckCircle2,
+  Zap
 } from 'lucide-react';
 
 export default function App() {
@@ -43,11 +49,12 @@ export default function App() {
     });
   };
 
-  // Products, Cart, Orders, Currency States initialized from localStorage
+  // Products, Cart, Orders, Currency & User Profile States initialized from localStorage
   const [products, setProducts] = useState(loadStoredProducts);
   const [cart, setCart] = useState(loadStoredCart);
   const [orders, setOrders] = useState(loadStoredOrders);
   const [currency, setCurrency] = useState(loadStoredCurrency);
+  const [userProfile, setUserProfile] = useState(loadStoredUserProfile);
 
   // Filter & Search States
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,6 +63,7 @@ export default function App() {
   const [selectedCertifications, setSelectedCertifications] = useState([]);
   const [sortBy, setSortBy] = useState('featured');
   const [mobileActiveTab, setMobileActiveTab] = useState('catalog');
+  const [only30MinFilter, setOnly30MinFilter] = useState(false);
 
   // Dynamically compute all unique categories from default list + products
   const allCategories = useMemo(() => {
@@ -75,6 +83,7 @@ export default function App() {
   const [confirmedOrder, setConfirmedOrder] = useState(null);
   const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Dedicated Feedback Modal State (Triggered 1s after order placement)
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -103,6 +112,10 @@ export default function App() {
   useEffect(() => {
     saveStoredCurrency(currency);
   }, [currency]);
+
+  useEffect(() => {
+    saveStoredUserProfile(userProfile);
+  }, [userProfile]);
 
   // Listen for PWA beforeinstallprompt event
   useEffect(() => {
@@ -190,6 +203,16 @@ export default function App() {
     showToast(`New material "${newProduct.title}" added to catalog! 🌱`);
   };
 
+  // Selective Product Deletion: Only removes custom items (isCustom: true)
+  const handleDeleteProduct = (productId) => {
+    setProducts((prev) => {
+      const updated = prev.filter((p) => p.id !== productId);
+      saveStoredProducts(updated);
+      return updated;
+    });
+    showToast('Custom material removed from catalog');
+  };
+
   // Order Success handler - Clears cart, shows confirmation, and triggers dedicated feedback modal
   const handleOrderSuccess = (newOrder) => {
     setOrders((prev) => [newOrder, ...prev]);
@@ -237,7 +260,12 @@ export default function App() {
       );
     }
 
-    // 5. Sorting
+    // 5. 30-Min Green Express Quick Filter
+    if (only30MinFilter) {
+      list = list.filter((p) => p.isExpressDelivery);
+    }
+
+    // 6. Sorting
     if (sortBy === 'price-asc') {
       list.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-desc') {
@@ -247,7 +275,7 @@ export default function App() {
     }
 
     return list;
-  }, [products, searchQuery, selectedCategory, minRating, selectedCertifications, sortBy]);
+  }, [products, searchQuery, selectedCategory, minRating, selectedCertifications, sortBy, only30MinFilter]);
 
   const totalCartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
   const totalCartUSD = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -255,6 +283,9 @@ export default function App() {
   return (
     <div className={`min-h-screen flex flex-col ${currentTheme.bgPage} text-slate-800 selection:bg-emerald-600 selection:text-white pb-20 md:pb-0 transition-colors duration-700`}>
       
+      {/* 1–2 Second Intro Video / Splash Animation (Auto-dismisses & cached in sessionStorage) */}
+      <IntroSplashOverlay />
+
       {/* Toast Notification Alert Banner */}
       {toastMessage && (
         <div className="fixed top-20 right-4 z-50 max-w-sm p-3.5 rounded-2xl bg-slate-900/95 text-white border border-emerald-500/50 text-xs font-semibold shadow-2xl flex items-center gap-2.5 animate-slideInRight backdrop-blur-md">
@@ -268,6 +299,8 @@ export default function App() {
         cartCount={totalCartCount}
         cartTotalUSD={totalCartUSD}
         ordersCount={orders.length}
+        userProfile={userProfile}
+        onOpenProfileModal={() => setIsProfileOpen(true)}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenAddModal={() => setIsAddProductOpen(true)}
         onOpenOrdersModal={() => setIsOrderHistoryOpen(true)}
@@ -289,6 +322,12 @@ export default function App() {
         currentTimePeriod={timePeriod}
       />
 
+      {/* Dedicated Flash Sale & 30-Minute Instant Delivery Hub */}
+      <FlashSaleBanner
+        is30MinOnly={only30MinFilter}
+        onToggle30MinOnly={() => setOnly30MinFilter(prev => !prev)}
+      />
+
       {/* Filter and Category Bar */}
       <div id="catalog">
         <FilterBar
@@ -302,6 +341,8 @@ export default function App() {
           setSortBy={setSortBy}
           totalResults={filteredProducts.length}
           categories={allCategories}
+          is30MinOnly={only30MinFilter}
+          setIs30MinOnly={setOnly30MinFilter}
         />
       </div>
 
@@ -333,6 +374,7 @@ export default function App() {
                 currency={currency}
                 onAddToCart={handleAddToCart}
                 onOpenSpecs={(p) => setSpecsProduct(p)}
+                onDeleteProduct={handleDeleteProduct}
               />
             ))}
           </div>
@@ -507,6 +549,19 @@ export default function App() {
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
         recentOrder={feedbackOrder}
+      />
+
+      {/* User Profile / Sign-In Modal */}
+      <UserProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        profile={userProfile}
+        onSaveProfile={(updated) => {
+          setUserProfile(updated);
+          showToast(`Welcome back, ${updated.name}! 🌿`);
+        }}
+        onOpenOrders={() => setIsOrderHistoryOpen(true)}
+        ordersCount={orders.length}
       />
 
     </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Filter, Star, Check, X } from 'lucide-react';
+import { Filter, Star, Check, X, Zap } from 'lucide-react';
 import { CATEGORIES, CERTIFICATIONS } from '../data/defaultProducts';
 
 export default function FilterBar({
@@ -12,7 +12,9 @@ export default function FilterBar({
   sortBy,
   setSortBy,
   totalResults,
-  categories = CATEGORIES
+  categories = CATEGORIES,
+  is30MinOnly = false,
+  setIs30MinOnly
 }) {
   const toggleCert = (cert) => {
     if (selectedCertifications.includes(cert)) {
@@ -26,12 +28,14 @@ export default function FilterBar({
     setSelectedCategory('All');
     setMinRating(0);
     setSelectedCertifications([]);
+    if (setIs30MinOnly) setIs30MinOnly(false);
   };
 
   const hasActiveFilters =
     selectedCategory !== 'All' ||
     minRating > 0 ||
-    selectedCertifications.length > 0;
+    selectedCertifications.length > 0 ||
+    is30MinOnly;
 
   return (
     <div className="bg-white/95 backdrop-blur-md border-b border-emerald-100 sticky top-16 sm:top-20 z-30 py-3 shadow-xs transition-colors">
@@ -43,6 +47,22 @@ export default function FilterBar({
             <Filter className="w-3.5 h-3.5 text-emerald-600" />
             <span>Category:</span>
           </span>
+
+          {/* Dedicated 30-Min Delivery Quick Filter Pill */}
+          {setIs30MinOnly && (
+            <button
+              onClick={() => setIs30MinOnly(!is30MinOnly)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all touch-target flex-shrink-0 flex items-center gap-1 border shadow-xs ${
+                is30MinOnly
+                  ? 'bg-amber-400 text-slate-950 border-amber-500 shadow-md ring-2 ring-amber-300'
+                  : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+              }`}
+              title="Filter materials with guaranteed 30-minute electric delivery"
+            >
+              <Zap className={`w-3.5 h-3.5 ${is30MinOnly ? 'fill-slate-950 text-slate-950' : 'text-amber-500 fill-amber-400'}`} />
+              <span>⚡ 30-Min Delivery Only</span>
+            </button>
+          )}
 
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat;
